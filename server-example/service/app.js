@@ -138,6 +138,25 @@ const validateApiKey = async (req, res, next) => {
     }
 }
 
+const validateClientCert = async (req, res, next) => {
+    const cert = req.connection.getPeerCertificate()
+    if (!cert || !cert.fingerprint256) {
+        return res
+        .status(401)
+        .json({ success: false, message: 'Certificate is required.' });
+    }
+    const certificateId = cert.fingerprint256.replace(/\:/g,'').toLowerCase();
+
+    if (validCertificates[certificateId]) {
+        console.log(`Client certificate: ${certificateId} : ${validCertificates[certificateId]} authorized.`);
+        next();
+    } else {
+        return res
+        .status(401)
+        .json({ success: false, message: 'Certificate not in valid cert list.' });
+    }
+}
+
 const validateClientCertAndDeviceId = async (req, res, next) => {
     const cert = req.connection.getPeerCertificate()
     if (!cert || !cert.fingerprint256) {
@@ -218,9 +237,14 @@ const statusData = async (req, res, next) => {
 
 router.post('/devicecert', signCertificate);
 router.post('/syncdevicecert', syncCertificate);
+router.post('/apikey/devicecert', validateApiKey, signCertificate);
+router.post('/apikey/syncdevicecert', validateApiKey, syncCertificate);
 
-router.post('/forwardtelemetry', validateApiKey, telemetryData);
-router.post('/forwardstatus', validateApiKey, statusData);
+router.post('/apikey/forwardtelemetry', validateApiKey, telemetryData);
+router.post('/apikey/forwardstatus', validateApiKey, statusData);
+router.post('/forwardtelemetry', validateClientCert, telemetryData);
+router.post('/forwardstatus', validateClientCert, statusData);
+
 router.post('/devicetelemetry/:deviceId', validateClientCertAndDeviceId, telemetryData);
 
 app.use('/', router);
