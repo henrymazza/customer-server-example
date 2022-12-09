@@ -157,6 +157,18 @@ const validateClientCert = async (req, res, next) => {
     }
 }
 
+const validateAPIKeyOrCert = async (req, res, next) => {
+    const apiKeyName = req.headers[API_KEY_NAME];
+    const { deviceId } = req.params;
+    if (apiKeyName) {
+        return validateApiKey(req, res, next);
+    } else if (deviceId) {
+        return validateClientCertAndDeviceId(req, res, next);
+    } else {
+        return validateClientCert(req, res, next);
+    }
+};
+
 const validateClientCertAndDeviceId = async (req, res, next) => {
     const cert = req.connection.getPeerCertificate()
     if (!cert || !cert.fingerprint256) {
@@ -173,7 +185,7 @@ const validateClientCertAndDeviceId = async (req, res, next) => {
     }
 
     const { deviceId } = req.params;
-    if (validCertificates[certificateId] !== deviceId) {
+    if (deviceId && validCertificates[certificateId] !== deviceId) {
         return res
         .status(401)
         .json({ success: false, message: 'Certificate and deviceId mismatch.' });
@@ -235,8 +247,8 @@ const statusData = async (req, res, next) => {
  * Event methods *
  ****************************/
 
-router.post('/devicecert', signCertificate);
-router.post('/syncdevicecert', syncCertificate);
+router.post('/devicecert', validateClientCert, signCertificate);
+router.post('/syncdevicecert', validateClientCert, syncCertificate);
 router.post('/apikey/devicecert', validateApiKey, signCertificate);
 router.post('/apikey/syncdevicecert', validateApiKey, syncCertificate);
 
@@ -245,7 +257,8 @@ router.post('/apikey/forwardstatus', validateApiKey, statusData);
 router.post('/forwardtelemetry', validateClientCert, telemetryData);
 router.post('/forwardstatus', validateClientCert, statusData);
 
-router.post('/devicetelemetry/:deviceId', validateClientCertAndDeviceId, telemetryData);
+router.post('/devicetelemetry/:deviceId', validateAPIKeyOrCert, telemetryData);
+router.post('/devicetelemetry', validateAPIKeyOrCert, telemetryData);
 
 app.use('/', router);
 
