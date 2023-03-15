@@ -1,34 +1,21 @@
 {
-    "name": "service-dispatcher",
-    "description": "The microservice dispatcher",
+    "name": "customer-server-sample",
+    "description": "MioConnect customer server sample",
     "main": "index.js",
     "version": "0.0.1",
     "private": true,
     "dependencies": {
         "body-parser": "^1.17.1",
         "cors": "^2.8.3",
+        "cross-env": "^7.0.3",
         "express": "^4.15.2",
-        "logger": "file:./logger/",
         "moment": "^2.24.0",
         "morgan": "^1.10.0",
         "node-forge": "^0.10.0",
         "underscore": "*",
         "uuid": "^3.3.2"
     },
-    "devDependencies": {
-        "aws-sdk": "*",
-        "aws-sdk-mock": "*",
-        "chai": "*",
-        "mocha": "*",
-        "npm-run-all": "*",
-        "proxyquire": "*",
-        "sinon": "*",
-        "sinon-chai": "*"
-    },
     "scripts": {
-        "pretest": "rm -rf package-lock.json && rm -rf node_modules && npm install",
-        "test": "mocha lib/*.spec.js",
-        "prestart": "rm -rf package-lock.json && npm install",
-        "start": "node index.js"
+        "start": "cross-env API_KEY_NAME=api-key-name API_KEY_VALUE=api-key-value node index.js"
     }
 }

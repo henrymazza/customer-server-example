@@ -20,7 +20,6 @@
 /**
  * Lib
  */
-const Logger = require('logger');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -197,20 +196,14 @@ const validateClientCertAndDeviceId = async (req, res, next) => {
     }
 }
 
-const _telemetryData = async (body) => {
-    console.log(`Telemetry data: ${JSON.stringify(body)})`);
-
-    const result = {
-        success: true
-    }
-    return result;
-}
-
 const telemetryData = async (req, res, next) => {
     const { body } = req;
     
     try {
-        const result = await _telemetryData(body);
+        console.log(`Telemetry data: ${JSON.stringify(body)})`);
+        const result = {
+            success: true
+        }
         res.json(result);
     } catch (err) {
         console.log(err)
@@ -220,21 +213,14 @@ const telemetryData = async (req, res, next) => {
     }
 }
 
-const _statusData = async (body) => {
-    console.log(`Status data: ${JSON.stringify(body)})`);
-
-    const result = {
-        success: true
-    }
-    return result;
-}
-
-
 const statusData = async (req, res, next) => {
     const { body } = req;
     
     try {
-        const result = await _statusData(body);
+        console.log(`Status data: ${JSON.stringify(body)})`);
+        const result = {
+            success: true
+        }
         res.json(result);
     } catch (err) {
         console.log(err)
@@ -247,15 +233,11 @@ const statusData = async (req, res, next) => {
  * Event methods *
  ****************************/
 
-router.post('/devicecert', validateClientCert, signCertificate);
-router.post('/syncdevicecert', validateClientCert, syncCertificate);
-router.post('/apikey/devicecert', validateApiKey, signCertificate);
-router.post('/apikey/syncdevicecert', validateApiKey, syncCertificate);
+router.post('/devicecert', validateAPIKeyOrCert, signCertificate);
+router.post('/syncdevicecert', validateAPIKeyOrCert, syncCertificate);
 
-router.post('/apikey/forwardtelemetry', validateApiKey, telemetryData);
-router.post('/apikey/forwardstatus', validateApiKey, statusData);
-router.post('/forwardtelemetry', validateClientCert, telemetryData);
-router.post('/forwardstatus', validateClientCert, statusData);
+router.post('/forwardtelemetry', validateAPIKeyOrCert, telemetryData);
+router.post('/forwardstatus', validateAPIKeyOrCert, statusData);
 
 router.post('/devicetelemetry/:deviceId', validateAPIKeyOrCert, telemetryData);
 router.post('/devicetelemetry', validateAPIKeyOrCert, telemetryData);
